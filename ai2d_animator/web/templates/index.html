@@ -9,6 +9,7 @@
       .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; flex: 1; }
       input, select, button, textarea { padding: 8px; margin: 4px 0; width: 100%; }
       ul { padding-left: 20px; }
+      .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #ddd; border-radius: 16px; padding: 4px 10px; margin: 2px; }
     </style>
   </head>
   <body>
@@ -21,9 +22,13 @@
           <button type="submit">Upload</button>
         </form>
         <h3>Current Characters</h3>
-        <ul>
-          {% for a in assets %}<li>{{ a }}</li>{% else %}<li>No assets yet</li>{% endfor %}
-        </ul>
+        <div>
+          {% for a in assets %}
+            <label class="pill"><input type="checkbox" name="characters" value="{{ a.split('.')[0] }}" form="genform" checked /> {{ a }} <a href="/delete/character/{{ a }}" title="Delete">✕</a></label>
+          {% else %}
+            <p>No assets yet</p>
+          {% endfor %}
+        </div>
       </div>
       <div class="card">
         <h2>Upload Backgrounds (PNG/JPG)</h2>
@@ -32,15 +37,19 @@
           <button type="submit">Upload</button>
         </form>
         <h3>Backgrounds</h3>
-        <ul>
-          {% for b in backgrounds %}<li>{{ b }}</li>{% else %}<li>No backgrounds yet</li>{% endfor %}
-        </ul>
+        <div>
+          {% for b in backgrounds %}
+            <span class="pill">{{ b }} <a href="/delete/background/{{ b }}" title="Delete">✕</a></span>
+          {% else %}
+            <p>No backgrounds yet</p>
+          {% endfor %}
+        </div>
       </div>
     </div>
 
     <div class="card" style="margin-top: 24px;">
       <h2>Generate Video</h2>
-      <form method="post" action="/generate">
+      <form id="genform" method="post" action="/generate">
         <label>Story Prompt</label>
         <textarea name="prompt" rows="3" placeholder="A short adventure..." required></textarea>
         <div class="row">
@@ -59,6 +68,7 @@
             <input type="number" step="0.1" name="seconds_per_scene" value="3" />
             <label>Background Provider</label>
             <select name="background_provider">
+              <option value="auto">auto</option>
               <option value="gradient">gradient</option>
               <option value="image_dir">image_dir</option>
             </select>

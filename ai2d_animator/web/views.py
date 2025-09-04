@@ -62,18 +62,27 @@ def generate():
     fps = int(request.form.get("fps", 24))
     scenes = int(request.form.get("scenes", 3))
     seconds_per_scene = float(request.form.get("seconds_per_scene", 3.0))
-    background_provider = request.form.get("background_provider", "gradient")
+    background_provider = request.form.get("background_provider", "auto")
     offline = request.form.get("offline") == "on"
     api_key = request.form.get("api_key") or os.getenv("GOOGLE_API_KEY")
+    selected_characters = request.form.getlist("characters")
 
     assets_dir = Path(current_app.config["ASSETS_FOLDER"]).resolve()
     bg_dir = Path(current_app.config["BACKGROUND_FOLDER"]).resolve()
     output_dir = Path(current_app.config["OUTPUT_FOLDER"]).resolve()
     video_out = str(output_dir / "web_demo.mp4")
 
-    character_assets: List[CharacterAsset] = [
-        CharacterAsset(name=p.stem, image_path=str(p)) for p in sorted(assets_dir.glob("*.png"))
-    ]
+    all_assets = sorted(assets_dir.glob("*.png"))
+    if selected_characters:
+        filtered = [p for p in all_assets if p.stem in selected_characters]
+    else:
+        filtered = all_assets
+    character_assets: List[CharacterAsset] = [CharacterAsset(name=p.stem, image_path=str(p)) for p in filtered]
+
+    # Auto background provider if 'auto'
+    if background_provider == "auto":
+        has_backgrounds = any(bg_dir.glob("*.png")) or any(bg_dir.glob("*.jpg"))
+        background_provider = "image_dir" if has_backgrounds else "gradient"
     job = job_manager.create()
     job_manager.run_generation(
         job,
@@ -92,6 +101,22 @@ def generate():
         offline=offline,
     )
     return redirect(url_for("views.status", job_id=job.id))
+
+
+@bp.route("/delete/character/<filename>")
+def delete_character(filename: str):
+    p = Path(current_app.config["ASSETS_FOLDER"]) / filename
+    if p.exists():
+        p.unlink()
+    return redirect(url_for("views.index"))
+
+
+@bp.route("/delete/background/<filename>")
+def delete_background(filename: str):
+    p = Path(current_app.config["BACKGROUND_FOLDER"]) / filename
+    if p.exists():
+        p.unlink()
+    return redirect(url_for("views.index"))
 
 
 @bp.route("/status/<job_id>")
