@@ -22,9 +22,23 @@ class GeminiClient:
         fallback_model_name: str = "gemini-1.5-flash-latest",
     ) -> None:
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
+        # If the key is still missing, fall back to prompting the user in interactive sessions.
+        if not self.api_key:
+            try:
+                import sys
+
+                if sys.stdin is not None and sys.stdin.isatty():
+                    # Prompt the user for the key – this covers CLI usage where the developer wants
+                    # to supply it manually. We intentionally avoid prompting when stdin is not a
+                    # TTY (e.g., inside a web request or when piped) to prevent hangs.
+                    self.api_key = input("Enter your Google Gemini API key: ").strip()
+            except Exception:
+                # If anything goes wrong during the prompt fallback to None so the error below is raised.
+                self.api_key = None
+
         if not self.api_key:
             raise RuntimeError(
-                "GOOGLE_API_KEY not set. Export it or pass api_key to GeminiClient."
+                "GOOGLE_API_KEY not set and no key provided interactively. Export it, pass api_key, or run in an interactive shell to be prompted."
             )
         self.model_name = model_name
         self.fallback_model_name = fallback_model_name
