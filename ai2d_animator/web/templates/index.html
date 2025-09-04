@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>AI 2D Animator</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 24px; }
+      .row { display: flex; gap: 24px; }
+      .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; flex: 1; }
+      input, select, button, textarea { padding: 8px; margin: 4px 0; width: 100%; }
+      ul { padding-left: 20px; }
+      .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #ddd; border-radius: 16px; padding: 4px 10px; margin: 2px; }
+      .error { background: #ffe3e3; color: #a20000; padding: 10px; border: 1px solid #ffcccc; border-radius: 6px; margin-bottom: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>AI 2D Animator</h1>
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+    <div class="row">
+      <div class="card">
+        <h2>Upload Characters (PNG)</h2>
+        <form method="post" action="/upload/character" enctype="multipart/form-data">
+          <input type="file" name="file" accept="image/png" required />
+          <button type="submit">Upload</button>
+        </form>
+        <h3>Current Characters</h3>
+        <div>
+          {% for a in assets %}
+            <label class="pill"><input type="checkbox" name="characters" value="{{ a.split('.')[0] }}" form="genform" checked /> {{ a }} <a href="/delete/character/{{ a }}" title="Delete">✕</a></label>
+          {% else %}
+            <p>No assets yet</p>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="card">
+        <h2>Upload Backgrounds (PNG/JPG)</h2>
+        <form method="post" action="/upload/background" enctype="multipart/form-data">
+          <input type="file" name="file" accept="image/png, image/jpeg" required />
+          <button type="submit">Upload</button>
+        </form>
+        <h3>Backgrounds</h3>
+        <div>
+          {% for b in backgrounds %}
+            <span class="pill">{{ b }} <a href="/delete/background/{{ b }}" title="Delete">✕</a></span>
+          {% else %}
+            <p>No backgrounds yet</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 24px;">
+      <h2>Generate Video</h2>
+      <form id="genform" method="post" action="/generate">
+        <label>Story Prompt</label>
+        <textarea name="prompt" rows="3" placeholder="A short adventure..." required></textarea>
+        <div class="row">
+          <div class="card">
+            <label>Width</label>
+            <input type="number" name="width" value="1280" />
+            <label>Height</label>
+            <input type="number" name="height" value="720" />
+            <label>FPS</label>
+            <input type="number" name="fps" value="24" />
+          </div>
+          <div class="card">
+            <label>Scenes</label>
+            <input type="number" name="scenes" value="3" />
+            <label>Seconds per Scene</label>
+            <input type="number" step="0.1" name="seconds_per_scene" value="3" />
+            <label>Background Provider</label>
+            <select name="background_provider">
+              <option value="auto">auto</option>
+              <option value="gradient">gradient</option>
+              <option value="image_dir">image_dir</option>
+            </select>
+          </div>
+          <div class="card">
+            <label>Google API Key (optional)</label>
+            <input type="password" name="api_key" placeholder="If not in .env" />
+            <label><input type="checkbox" name="offline" /> Run Offline (no Gemini)</label>
+          </div>
+        </div>
+        <button type="submit">Generate Video</button>
+      </form>
+    </div>
+  </body>
+  </html>
+
