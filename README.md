@@ -37,6 +37,27 @@ python -m ai2d_animator run \
   --output-video ./demo.mp4
 ```
 
+Using YAML config:
+
+```yaml
+# config.yaml
+prompt: Two friends explore a neon city
+assets_dir: ./assets
+width: 1280
+height: 720
+fps: 24
+scenes: 3
+seconds_per_scene: 3.0
+background_provider: gradient
+output_dir: ./frames
+output_video: ./demo.mp4
+offline: false
+```
+
+```bash
+python -m ai2d_animator run --config ./config.yaml --prefer-config
+```
+
 ### Run offline (no Gemini)
 
 ```bash
