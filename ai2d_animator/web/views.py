@@ -24,9 +24,10 @@ def index():
     # List assets and backgrounds
     assets_dir = Path(current_app.config["ASSETS_FOLDER"]).resolve()
     bg_dir = Path(current_app.config["BACKGROUND_FOLDER"]).resolve()
-    assets = [p.name for p in assets_dir.glob("*.png")]
-    backgrounds = [p.name for p in bg_dir.glob("*.png")] + [p.name for p in bg_dir.glob("*.jpg")]
-    return render_template("index.html", assets=assets, backgrounds=backgrounds)
+    assets = [p.name for p in assets_dir.iterdir() if p.is_file() and p.suffix.lower() in {".png"}]
+    backgrounds = [p.name for p in bg_dir.iterdir() if p.is_file() and p.suffix.lower() in {".png", ".jpg", ".jpeg"}]
+    error = request.args.get("error")
+    return render_template("index.html", assets=assets, backgrounds=backgrounds, error=error)
 
 
 @bp.route("/upload/character", methods=["POST"])
@@ -72,16 +73,19 @@ def generate():
     output_dir = Path(current_app.config["OUTPUT_FOLDER"]).resolve()
     video_out = str(output_dir / "web_demo.mp4")
 
-    all_assets = sorted(assets_dir.glob("*.png"))
+    all_assets = sorted([p for p in assets_dir.iterdir() if p.is_file() and p.suffix.lower() == ".png"])
     if selected_characters:
         filtered = [p for p in all_assets if p.stem in selected_characters]
     else:
         filtered = all_assets
     character_assets: List[CharacterAsset] = [CharacterAsset(name=p.stem, image_path=str(p)) for p in filtered]
 
+    if not character_assets:
+        return redirect(url_for("views.index", error="Upload/select at least one character PNG"))
+
     # Auto background provider if 'auto'
     if background_provider == "auto":
-        has_backgrounds = any(bg_dir.glob("*.png")) or any(bg_dir.glob("*.jpg"))
+        has_backgrounds = any(p.is_file() and p.suffix.lower() in {".png", ".jpg", ".jpeg"} for p in bg_dir.iterdir())
         background_provider = "image_dir" if has_backgrounds else "gradient"
     job = job_manager.create()
     job_manager.run_generation(

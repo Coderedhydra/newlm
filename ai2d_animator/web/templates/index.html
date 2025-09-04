@@ -10,10 +10,14 @@
       input, select, button, textarea { padding: 8px; margin: 4px 0; width: 100%; }
       ul { padding-left: 20px; }
       .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #ddd; border-radius: 16px; padding: 4px 10px; margin: 2px; }
+      .error { background: #ffe3e3; color: #a20000; padding: 10px; border: 1px solid #ffcccc; border-radius: 6px; margin-bottom: 12px; }
     </style>
   </head>
   <body>
     <h1>AI 2D Animator</h1>
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
     <div class="row">
       <div class="card">
         <h2>Upload Characters (PNG)</h2>
