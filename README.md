@@ -59,4 +59,18 @@ Notes:
 - Easing per segment follows the next keyframe's easing.
 - Output frames go to `--output-dir`.
 
+### Flask Web UI
+
+Run the web app:
+
+```bash
+python3 -m ai2d_animator.web.app
+```
+
+Open `http://localhost:7860`:
+- Upload character PNGs and background images
+- Enter story prompt and settings
+- Click Generate Video to start a background job
+- Watch live status and download the MP4 when done
+
 # newlmdfgsdf

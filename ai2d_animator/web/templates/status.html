@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Status</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 24px; }
+      .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+    </style>
+    <script>
+      async function poll() {
+        const res = await fetch('/api/status/{{ job.id }}');
+        const data = await res.json();
+        const el = document.getElementById('status');
+        el.textContent = `${data.status} - ${data.message || ''}`;
+        if (data.status === 'done' && data.video) {
+          const link = document.getElementById('download');
+          link.href = data.video;
+          link.style.display = 'inline';
+        } else if (data.status !== 'error') {
+          setTimeout(poll, 1000);
+        }
+      }
+      window.onload = poll;
+    </script>
+  </head>
+  <body>
+    <h1>Job {{ job.id }}</h1>
+    <div class="card">
+      <p id="status">{{ job.status }} - {{ job.message }}</p>
+      <a id="download" href="{{ job.video_path or '' }}" style="display: {{ 'inline' if job.video_path else 'none' }}">Download Video</a>
+    </div>
+    <p><a href="/">Back</a></p>
+  </body>
+  </html>
+

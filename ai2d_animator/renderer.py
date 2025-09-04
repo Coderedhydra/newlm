@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 import os
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Callable, Optional
 
 import numpy as np
 from PIL import Image, ImageOps
@@ -89,6 +89,7 @@ def render_story(
     story: Story,
     character_assets: List[CharacterAsset],
     config: RenderConfig,
+    on_progress: Optional[Callable[[int, int], None]] = None,
 ) -> List[str]:
     _ensure_dir(config.output_dir)
     sprites = _load_character_images(character_assets)
@@ -119,6 +120,18 @@ def render_story(
             canvas.save(frame_path)
             frame_paths.append(frame_path)
             frame_index += 1
+            if on_progress is not None:
+                on_progress(frame_index, -1)
 
     return frame_paths
+
+
+def write_video_from_frames(frame_paths: List[str], output_video: str, fps: int) -> None:
+    try:
+        import imageio.v3 as iio
+        import imageio_ffmpeg  # noqa: F401
+    except Exception as exc:  # pragma: no cover
+        raise RuntimeError("imageio and imageio-ffmpeg are required for video export") from exc
+    imgs = [iio.imread(fp) for fp in frame_paths]
+    iio.imwrite(output_video, imgs, fps=fps)
 
